@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prototipe Ujian Online - Satu Soal Per Layar</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .exam-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            max-width: 600px;
+            width: 100%;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .progress-text {
+            font-weight: bold;
+            color: #2196F3;
+            font-size: 16px;
+        }
+        .warning-badge {
+            background-color: #ff9800;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .question-card {
+            display: none; /* Sembunyikan semua soal awal */
+        }
+        .question-card.active {
+            display: block; /* Tampilkan cuma soal yang aktif */
+        }
+        .question-text {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+            line-height: 1.4;
+        }
+        .options label {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 15px;
+        }
+        .options label:hover {
+            background: #eef5ff;
+            border-color: #2196F3;
+        }
+        .options input[type="radio"] {
+            margin-right: 12px;
+            transform: scale(1.2);
+        }
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            gap: 10px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .btn-prev {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-prev:hover {
+            background-color: #5a6268;
+        }
+        .btn-next {
+            background-color: #2196F3;
+            color: white;
+        }
+        .btn-next:hover {
+            background-color: #0b7dda;
+        }
+        .btn-submit {
+            background-color: #4CAF50;
+            color: white;
+            display: none; /* Muncul cuma di soal terakhir */
+        }
+        .btn-submit:hover {
+            background-color: #45a049;
+        }
+
+        /* Modal Peringatan */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-box {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        .modal-box h3 {
+            color: #d32f2f;
+            margin-top: 0;
+        }
+        .timer-text {
+            font-size: 28px;
+            font-weight: bold;
+            color: #d32f2f;
+            margin: 15px 0;
+        }
+        .btn-return {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="exam-container" id="examContainer">
+        <div class="header">
+            <div class="progress-text" id="progressText">Soal 1 dari 5</div>
+            <div class="warning-badge" id="warningBadge">Pelanggaran: 0/3</div>
+        </div>
+
+        <form id="examForm" onsubmit="event.preventDefault(); finishExam('Jawaban berhasil dikirim.');">
+            
+            <!-- Layar Soal 1 -->
+            <div class="question-card active" id="card-0">
+                <div class="question-text">1. Apa ibu kota dari negara Indonesia saat ini?</div>
+                <div class="options">
+                    <label><input type="radio" name="q1" value="a"> A. Bandung</label>
+                    <label><input type="radio" name="q1" value="b"> B. Jakarta</label>
+                    <label><input type="radio" name="q1" value="c"> C. Surabaya</label>
+                    <label><input type="radio" name="q1" value="d"> D. Medan</label>
+                </div>
+            </div>
+
+            <!-- Layar Soal 2 -->
+            <div class="question-card" id="card-1">
+                <div class="question-text">2. Manakah yang merupakan bahasa pemrograman web client-side?</div>
+                <div class="options">
+                    <label><input type="radio" name="q2" value="a"> A. Python</label>
+                    <label><input type="radio" name="q2" value="b"> B. PHP</label>
+                    <label><input type="radio" name="q2" value="c"> C. JavaScript</label>
+                    <label><input type="radio" name="q2" value="d"> D. SQL</label>
+                </div>
+            </div>
+
+            <!-- Layar Soal 3 -->
+            <div class="question-card" id="card-2">
+                <div class="question-text">3. Berapakah hasil dari 15 + 7 × 2 ?</div>
+                <div class="options">
+                    <label><input type="radio" name="q3" value="a"> A. 44</label>
+                    <label><input type="radio" name="q3" value="b"> B. 29</label>
+                    <label><input type="radio" name="q3" value="c"> C. 31</label>
+                    <label><input type="radio" name="q3" value="d"> D. 30</label>
+                </div>
+            </div>
+
+            <!-- Layar Soal 4 -->
+            <div class="question-card" id="card-3">
+                <div class="question-text">4. Planet manakah yang dikenal sebagai Planet Merah?</div>
+                <div class="options">
+                    <label><input type="radio" name="q4" value="a"> A. Venus</label>
+                    <label><input type="radio" name="q4" value="b"> B. Yupiter</label>
+                    <label><input type="radio" name="q4" value="c"> C. Mars</label>
+                    <label><input type="radio" name="q4" value="d"> D. Saturnus</label>
+                </div>
+            </div>
+
+            <!-- Layar Soal 5 -->
+            <div class="question-card" id="card-4">
+                <div class="question-text">5. Tag HTML manakah yang digunakan untuk membuat tautan (link)?</div>
+                <div class="options">
+                    <label><input type="radio" name="q5" value="a"> A. &lt;link&gt;</label>
+                    <label><input type="radio" name="q5" value="b"> B. &lt;a&gt;</label>
+                    <label><input type="radio" name="q5" value="c"> C. &lt;href&gt;</label>
+                    <label><input type="radio" name="q5" value="d"> D. &lt;url&gt;</label>
+                </div>
+            </div>
+
+            <!-- Tombol Navigasi -->
+            <div class="navigation-buttons">
+                <button type="button" class="btn btn-prev" id="btnPrev" onclick="changeQuestion(-1)" style="visibility: hidden;">Kembali</button>
+                <button type="button" class="btn btn-next" id="btnNext" onclick="changeQuestion(1)">Lanjut</button>
+                <button type="submit" class="btn btn-submit" id="btnSubmit">Selesai & Kirim</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Modal Peringatan -->
+    <div class="modal-overlay" id="warningModal">
+        <div class="modal-box">
+            <h3>PERINGATAN UNTUK PESERTA!</h3>
+            <p id="modalMessage">Anda terdeteksi meninggalkan halaman ujian!</p>
+            <p>Kembali dalam waktu:</p>
+            <div class="timer-text" id="countdown">10</div>
+            <button class="btn-return" onclick="closeModal()">Saya Mengerti & Lanjutkan</button>
+        </div>
+    </div>
+
+    <script>
+        // System Config
+        const MAX_WARNINGS = 3;
+        const TIME_LIMIT_SECONDS = 10;
+        const TOTAL_QUESTIONS = 5;
+
+        // States
+        let currentQuestionIndex = 0;
+        let warningCount = 0;
+        let leftTime = 0;
+        let timerInterval = null;
+        let isExamFinished = false;
+
+        // Elements
+        const warningModal = document.getElementById('warningModal');
+        const countdownEl = document.getElementById('countdown');
+        const modalMessage = document.getElementById('modalMessage');
+        const warningBadge = document.getElementById('warningBadge');
+        const progressText = document.getElementById('progressText');
+        const btnPrev = document.getElementById('btnPrev');
+        const btnNext = document.getElementById('btnNext');
+        const btnSubmit = document.getElementById('btnSubmit');
+
+        // Navigasi Pindah Soal
+        function changeQuestion(direction) {
+            // Sembunyikan soal aktif sekarang
+            document.getElementById(`card-${currentQuestionIndex}`).classList.remove('active');
+
+            // Pindah index
+            currentQuestionIndex += direction;
+
+            // Tampilkan soal baru
+            document.getElementById(`card-${currentQuestionIndex}`).classList.add('active');
+
+            // Update Progress Header
+            progressText.innerText = `Soal ${currentQuestionIndex + 1} dari ${TOTAL_QUESTIONS}`;
+
+            // Atur Visibilitas Tombol
+            btnPrev.style.visibility = (currentQuestionIndex === 0) ? 'hidden' : 'visible';
+
+            if (currentQuestionIndex === TOTAL_QUESTIONS - 1) {
+                btnNext.style.display = 'none';
+                btnSubmit.style.display = 'block';
+            } else {
+                btnNext.style.display = 'block';
+                btnSubmit.style.display = 'none';
+            }
+        }
+
+        // --- SISTEM DETEKSI KELUAR EXAM ---
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) handleUserLeft();
+        });
+
+        window.addEventListener('blur', () => {
+            if (!document.hidden) handleUserLeft();
+        });
+
+        function handleUserLeft() {
+            if (isExamFinished) return;
+
+            warningCount++;
+            warningBadge.innerText = `Pelanggaran: ${warningCount}/${MAX_WARNINGS}`;
+
+            if (warningCount > MAX_WARNINGS) {
+                finishExam("Ujian dihentikan paksa: Anda melanggar batas keluar dari ujian (lebih dari 3 kali)!");
+                return;
+            }
+
+            modalMessage.innerText = `Peringatan ke-${warningCount}! Anda terdeteksi meninggalkan layar ujian. Segera kembali!`;
+            warningModal.style.display = 'flex';
+
+            leftTime = TIME_LIMIT_SECONDS;
+            countdownEl.innerText = leftTime;
+
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                leftTime--;
+                countdownEl.innerText = leftTime;
+
+                if (leftTime <= 0) {
+                    clearInterval(timerInterval);
+                    finishExam("Ujian dihentikan paksa: Anda berada di luar halaman ujian lebih dari 10 detik!");
+                }
+            }, 1000);
+        }
+
+        function closeModal() {
+            clearInterval(timerInterval);
+            warningModal.style.display = 'none';
+        }
+
+        function finishExam(reason) {
+            isExamFinished = true;
+            clearInterval(timerInterval);
+            warningModal.style.display = 'none';
+
+            const isViolation = warningCount > MAX_WARNINGS || leftTime <= 0;
+
+            const examContainer = document.getElementById('examContainer');
+            examContainer.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <h2 style="color: ${isViolation ? '#d32f2f' : '#4CAF50'}">
+                        ${isViolation ? 'Ujian Dibatalkan / Dikeluarkan' : 'Ujian Telah Selesai'}
+                    </h2>
+                    <p style="font-size: 16px; color: #555; line-height: 1.5;">${reason}</p>
+                    <hr style="margin: 20px 0; border: none; border-top: 1px solid #ccc;">
+                    <p style="font-weight: bold;">Status akhir: Jawaban Anda telah tersimpan secara otomatis.</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
